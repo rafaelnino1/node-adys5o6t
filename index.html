@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Scores de Bridge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1000px;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #888;
+      padding: 5px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    input[type="number"] {
+      width: 60px;
+      text-align: center;
+    }
+    .btn {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover {
+      background-color: #45a049;
+    }
+    .btn-reset {
+      background-color: #f44336;
+    }
+    .btn-reset:hover {
+      background-color: #e53935;
+    }
+    .btn-finalizar {
+      background-color: #2196F3;
+    }
+    .btn-finalizar:hover {
+      background-color: #1E88E5;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Scores de Bridge</h2>
+  <table id="scoreTable">
+    <thead>
+      <tr>
+        <th>Jugador</th>
+        <!-- Partidas 1 a 9 -->
+        <script>
+          for (let i = 1; i <= 9; i++) {
+            document.write(`<th>Partida ${i}</th>`);
+          }
+        </script>
+        <th>Total Jugador</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Filas 1 a 12 para nombres de jugadores -->
+      <script>
+        for (let fila = 0; fila < 12; fila++) {
+          document.write("<tr>");
+          // Columna editable para nombre de jugador
+          document.write(`<td><input type="text" id="name-${fila}" placeholder="Jugador ${fila + 1}" oninput="actualizarNombre(${fila})"></td>`);
+          
+          // Las celdas de puntajes (Partidas 1 a 9)
+          for (let col = 0; col < 9; col++) {
+            document.write(`<td><input type="number" min="-99" max="99" value="0" onchange="actualizarTotal(${fila})" id="cell-${fila}-${col}"></td>`);
+          }
+          
+          // Columna de Total Jugador
+          document.write(`<td id="total-${fila}">0</td>`);
+          document.write("</tr>");
+        }
+      </script>
+
+      <!-- Fila de Totales por Partida y Jugador -->
+      <tr>
+        <td><strong>Total por Partida</strong></td>
+        <script>
+          // Celdas para los totales de cada partida (columna por columna)
+          for (let i = 0; i < 9; i++) {
+            document.write(`<td id="total-partida-${i}">0</td>`);
+          }
+        </script>
+        <td><strong id="total-general">0</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button class="btn" onclick="exportarCSV()">Exportar a CSV</button>
+  <button class="btn btn-reset" onclick="resetearFormulario()">Recetear Formulario</button>
+  <button class="btn btn-finalizar" onclick="finalizarDatos()">Finalizar Datos de Entrada</button>
+
+  <script>
+    // Función para actualizar el nombre del jugador en la fila
+    function actualizarNombre(fila) {
+      const nombre = document.getElementById(`name-${fila}`).value;
+    }
+
+    // Función para actualizar el total de una fila (Total Jugador)
+    function actualizarTotal(fila) {
+      let suma = 0;
+      for (let col = 0; col < 9; col++) {
+        const val = parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
+        suma += val;
+      }
+      document.getElementById(`total-${fila}`).innerText = suma;
+
+      // Después de cada cambio, actualizar los totales por partida
+      actualizarTotalesPorPartida();
+    }
+
+    // Función para actualizar los totales de cada partida (por columnas)
+    function actualizarTotalesPorPartida() {
+      for (let col = 0; col < 9; col++) {
+        let totalPartida = 0;
+        for (let fila = 0; fila < 12; fila++) {
+          totalPartida += parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
+        }
+        document.getElementById(`total-partida-${col}`).innerText = totalPartida;
+      }
+
+      // Actualizar total general
+      let totalGeneral = 0;
+      for (let fila = 0; fila < 12; fila++) {
+        totalGeneral += parseInt(document.getElementById(`total-${fila}`).innerText) || 0;
+      }
+      document.getElementById("total-general").innerText = totalGeneral;
+    }
+
+    // Función para exportar los datos a CSV
+    function exportarCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Jugador,Partida 1,Partida 2,Partida 3,Partida 4,Partida 5,Partida 6,Partida 7,Partida 8,Partida 9,Total Jugador\n";
+
+      for (let fila = 0; fila < 12; fila++) {
+        let row = [document.getElementById(`name-${fila}`).value || `Jugador ${fila + 1}`];
+        let total = 0;
+        for (let col = 0; col < 9; col++) {
+          const val = parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
+          row.push(val);
+          total += val;
+        }
+        row.push(total);
+        csvContent += row.join(",") + "\n";
+      }
+
+      // Agregar fila de totales por partida
+      let rowPartidas = ["Total por Partida"];
+      for (let col = 0; col < 9; col++) {
+        rowPartidas.push(document.getElementById(`total-partida-${col}`).innerText || 0);
+      }
+      rowPartidas.push("");
+      csvContent += rowPartidas.join(",") + "\n";
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "scores_bridge.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Función para resetear el formulario
+    function resetearFormulario() {
+      // Restablecer nombres de jugadores
+      for (let fila = 0; fila < 12; fila++) {
+        document.getElementById(`name-${fila}`).value = '';
+      }
+
+      // Restablecer puntajes
+      for (let fila = 0; fila < 12; fila++) {
+        for (let col = 0; col < 9; col++) {
+          document.getElementById(`cell-${fila}-${col}`).value = 0;
+        }
+      }
+
+      // Restablecer totales
+      for (let fila = 0; fila < 12; fila++) {
+        document.getElementById(`total-${fila}`).innerText = 0;
+      }
+
+      // Restablecer totales por partida
+      for (let col = 0; col < 9; col++) {
+        document.getElementById(`total-partida-${col}`).innerText = 0;
+      }
+
+      // Restablecer total general
+      document.getElementById("total-general").innerText = 0;
+    }
+
+    // Función para finalizar datos de entrada
+    function finalizarDatos() {
+      const totalGeneral = parseInt(document.getElementById("total-general").innerText) || 0;
+
+      if (totalGeneral !== 0) {
+        alert("Revisar Scores: El Total General no es 0.");
+      } else {
+        alert("Datos de entrada finalizados correctamente.");
+      }
+    }
+  </script>
+
+</body>
+</html>
