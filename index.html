@@ -1,218 +1,467 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Scores de Bridge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bridge Scores" />
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+    :root{
+      --bg:#0b1220;         /* fondo app */
+      --card:#111827;       /* tarjetas/mesa */
+      --soft:#1f2937;       /* bordes/superficies */
+      --txt:#e5e7eb;        /* texto principal */
+      --muted:#9ca3af;      /* texto secundario */
+      --primary:#0ea5e9;    /* acentos */
+      --danger:#ef4444;
+      --success:#22c55e;
+      --radius:18px;
     }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 1000px;
-      margin-bottom: 20px;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#0b1220 0%,#0b1527 100%);
+      color:var(--txt);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
-    th, td {
-      border: 1px solid #888;
-      padding: 5px;
-      text-align: center;
+
+    /* App bar */
+    .appbar{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(8px);
+      background:rgba(11,18,32,.75);
+      border-bottom:1px solid #182033;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px;
     }
-    th {
-      background-color: #f0f0f0;
+    .title{
+      display:flex; align-items:center; gap:10px; font-weight:700;
+      letter-spacing:.2px; font-size:18px;
     }
-    input[type="number"] {
-      width: 60px;
-      text-align: center;
+    .chip{
+      font-size:11px; color:#cfefff; background:#0ea5e933;
+      padding:2px 8px; border-radius:999px; border:1px solid #0ea5e966;
     }
-    .btn {
-      padding: 8px 16px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
+
+    /* Layout */
+    .wrap{padding:14px; max-width:980px; margin:0 auto}
+    .card{
+      background:linear-gradient(180deg,#101726,#0f172a);
+      border:1px solid #182033;
+      box-shadow: 0 10px 30px rgba(2,6,23,.35);
+      border-radius:var(--radius);
+      overflow:hidden;
     }
-    .btn:hover {
-      background-color: #45a049;
+    .section-hd{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:14px 14px 10px 14px; border-bottom:1px solid #182033;
     }
-    .btn-reset {
-      background-color: #f44336;
+    .section-hd h2{margin:0; font-size:16px; font-weight:700}
+    .muted{color:var(--muted); font-size:12px}
+
+    /* Table area */
+    .table-scroller{
+      position:relative;
+      overflow:auto;
+      max-height: calc(100dvh - 220px);
+      /* momentum scroll iOS */
+      -webkit-overflow-scrolling: touch;
     }
-    .btn-reset:hover {
-      background-color: #e53935;
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      min-width:720px;
     }
-    .btn-finalizar {
-      background-color: #2196F3;
+    th, td{
+      border-bottom:1px solid #1e293b;
+      padding:10px 8px;
+      text-align:center;
+      font-size:14px;
+      white-space:nowrap;
     }
-    .btn-finalizar:hover {
-      background-color: #1E88E5;
+    thead th{
+      position:sticky; top:0; z-index:2;
+      background:#0f172a;
+      border-bottom:1px solid #263247;
+      font-weight:700;
+    }
+    /* sticky first column */
+    th:first-child, td:first-child{
+      position:sticky; left:0; z-index:1;
+      background:linear-gradient(180deg,#0f172a,#0f172a);
+      text-align:left;
+    }
+    tfoot td{
+      position:sticky; bottom:0; z-index:2;
+      background:#0f172a;
+      border-top:1px solid #263247;
+      font-weight:700;
+    }
+    tr:nth-child(even) td{ background: #0f172a; }
+    tr:nth-child(odd) td{ background: #0f1626; }
+
+    /* Inputs */
+    .name-input{
+      width:100%; max-width:220px;
+      background:#0b1426; color:var(--txt);
+      border:1px solid #1f2a3f; border-radius:10px;
+      padding:10px 12px; outline:none; font-size:14px;
+    }
+    .num-input{
+      width:80px; max-width:90px;
+      background:#0b1426; color:var(--txt);
+      border:1px solid #1f2a3f; border-radius:10px;
+      padding:10px 8px; outline:none; font-size:14px; text-align:center;
+    }
+    .num-input::-webkit-outer-spin-button,
+    .num-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+    .num-input[type=number]{ -moz-appearance: textfield; }
+
+    .total-badge{
+      display:inline-block; min-width:64px; text-align:center;
+      background:#0ea5e91a; border:1px solid #0ea5e955; color:#bfe9ff;
+      padding:8px 10px; border-radius:999px; font-weight:700;
+    }
+
+    /* Action bar */
+    .actions{
+      display:flex; flex-wrap:wrap; gap:10px;
+      padding:12px 14px; border-top:1px solid #182033;
+      background:linear-gradient(180deg,#0f172a,#0d1424);
+    }
+    .btn{
+      appearance:none; border:none; outline:none; cursor:pointer;
+      padding:12px 14px; border-radius:12px; font-weight:700; font-size:14px;
+      color:white; transition: transform .05s ease, box-shadow .2s ease, opacity .2s ease;
+      box-shadow: 0 4px 12px rgba(2,6,23,.35);
+    }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .primary{ background: linear-gradient(180deg,#38bdf8,#0ea5e9); }
+    .ok{ background: linear-gradient(180deg,#34d399,#22c55e); }
+    .warn{ background: linear-gradient(180deg,#fb7185,#ef4444); }
+    .ghost{
+      background:transparent; color:#c9d5ff; border:1px solid #263247;
+    }
+
+    /* Small helper row */
+    .helper{
+      display:flex; gap:8px; align-items:center; padding:10px 14px; color:var(--muted); font-size:12px;
+    }
+
+    /* Safe area on iPhone */
+    .spacer{ height: env(safe-area-inset-bottom); }
+
+    @media (max-width:480px){
+      .num-input{ width:70px; padding:10px 6px; }
+      .name-input{ max-width:170px; }
+      th, td{ padding:8px 6px; font-size:13px; }
     }
   </style>
 </head>
 <body>
+  <header class="appbar">
+    <div class="title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" stroke="#8bd6ff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Scores de Bridge
+      <span class="chip">Móvil</span>
+    </div>
+    <div class="muted" id="statusHint">Guardado</div>
+  </header>
 
-  <h2>Scores de Bridge</h2>
-  <table id="scoreTable">
-    <thead>
-      <tr>
-        <th>Jugador</th>
-        <!-- Partidas 1 a 9 -->
-        <script>
-          for (let i = 1; i <= 9; i++) {
-            document.write(`<th>Partida ${i}</th>`);
-          }
-        </script>
-        <th>Total Jugador</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Filas 1 a 12 para nombres de jugadores -->
-      <script>
-        for (let fila = 0; fila < 12; fila++) {
-          document.write("<tr>");
-          // Columna editable para nombre de jugador
-          document.write(`<td><input type="text" id="name-${fila}" placeholder="Jugador ${fila + 1}" oninput="actualizarNombre(${fila})"></td>`);
-          
-          // Las celdas de puntajes (Partidas 1 a 9)
-          for (let col = 0; col < 9; col++) {
-            document.write(`<td><input type="number" min="-99" max="99" value="0" onchange="actualizarTotal(${fila})" id="cell-${fila}-${col}"></td>`);
-          }
-          
-          // Columna de Total Jugador
-          document.write(`<td id="total-${fila}">0</td>`);
-          document.write("</tr>");
-        }
-      </script>
+  <main class="wrap">
+    <div class="card">
+      <div class="section-hd">
+        <h2>Marcador de 12 jugadores × 9 partidas</h2>
+        <div class="muted">Arrastra horizontal/vertical si la tabla no cabe</div>
+      </div>
 
-      <!-- Fila de Totales por Partida y Jugador -->
-      <tr>
-        <td><strong>Total por Partida</strong></td>
-        <script>
-          // Celdas para los totales de cada partida (columna por columna)
-          for (let i = 0; i < 9; i++) {
-            document.write(`<td id="total-partida-${i}">0</td>`);
-          }
-        </script>
-        <td><strong id="total-general">0</strong></td>
-      </tr>
-    </tbody>
-  </table>
+      <div class="table-scroller" id="tableScroller">
+        <table id="scoreTable" aria-label="Tabla de puntajes">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+          <tfoot id="tfoot"></tfoot>
+        </table>
+      </div>
 
-  <button class="btn" onclick="exportarCSV()">Exportar a CSV</button>
-  <button class="btn btn-reset" onclick="resetearFormulario()">Recetear Formulario</button>
-  <button class="btn btn-finalizar" onclick="finalizarDatos()">Finalizar Datos de Entrada</button>
+      <div class="helper">
+        <span>•</span> El total general debe ser <strong>0</strong> para validar la ronda.
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="btnNuevo">Nuevo juego</button>
+        <button class="btn primary" id="btnCSV">Exportar CSV</button>
+        <button class="btn warn" id="btnReset">Resetear</button>
+        <button class="btn ok" id="btnFinalizar">Finalizar entradas</button>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </main>
 
   <script>
-    // Función para actualizar el nombre del jugador en la fila
-    function actualizarNombre(fila) {
-      const nombre = document.getElementById(`name-${fila}`).value;
+  (function(){
+    const N_JUG=12, N_PAR=9;
+    const $ = (sel)=>document.querySelector(sel);
+    const thead = $('#thead'), tbody = $('#tbody'), tfoot = $('#tfoot');
+    const statusHint = $('#statusHint');
+
+    /* ---------- Render ---------- */
+    function renderHead(){
+      const tr = document.createElement('tr');
+      const thJugador = document.createElement('th'); thJugador.textContent = 'Jugador';
+      tr.appendChild(thJugador);
+      for(let i=1;i<=N_PAR;i++){
+        const th = document.createElement('th'); th.textContent = `Partida ${i}`;
+        tr.appendChild(th);
+      }
+      const thTotal = document.createElement('th'); thTotal.textContent = 'Total Jugador';
+      tr.appendChild(thTotal);
+      thead.appendChild(tr);
     }
 
-    // Función para actualizar el total de una fila (Total Jugador)
-    function actualizarTotal(fila) {
-      let suma = 0;
-      for (let col = 0; col < 9; col++) {
-        const val = parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
-        suma += val;
-      }
-      document.getElementById(`total-${fila}`).innerText = suma;
+    function cellId(r,c){ return `cell-${r}-${c}` }
+    function nameId(r){ return `name-${r}` }
+    function totalId(r){ return `total-${r}` }
+    function totalPartidaId(c){ return `total-partida-${c}` }
 
-      // Después de cada cambio, actualizar los totales por partida
+    function renderBody(){
+      for(let r=0;r<N_JUG;r++){
+        const tr = document.createElement('tr');
+
+        const tdName = document.createElement('td');
+        const inpName = document.createElement('input');
+        inpName.type='text'; inpName.placeholder=`Jugador ${r+1}`;
+        inpName.className='name-input'; inpName.id=nameId(r);
+        inpName.addEventListener('input', saveAndPaint);
+        tdName.appendChild(inpName);
+        tr.appendChild(tdName);
+
+        for(let c=0;c<N_PAR;c++){
+          const td = document.createElement('td');
+          const inp = document.createElement('input');
+          inp.type='number'; inp.inputMode='numeric'; inp.min=-99; inp.max=99; inp.value=0;
+          inp.className='num-input'; inp.id=cellId(r,c);
+          inp.addEventListener('input', ()=>{ actualizarTotal(r); saveAndPaint(); });
+          td.appendChild(inp);
+          tr.appendChild(td);
+        }
+
+        const tdTotal = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className='total-badge'; badge.id=totalId(r); badge.textContent='0';
+        tdTotal.appendChild(badge);
+        tr.appendChild(tdTotal);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderFoot(){
+      const tr = document.createElement('tr');
+      const tdLbl = document.createElement('td'); tdLbl.textContent='Total por Partida';
+      tr.appendChild(tdLbl);
+      for(let c=0;c<N_PAR;c++){
+        const td = document.createElement('td'); td.id=totalPartidaId(c); td.textContent='0';
+        tr.appendChild(td);
+      }
+      const tdG = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className='total-badge'; badge.id='total-general'; badge.textContent='0';
+      tdG.appendChild(badge);
+      tr.appendChild(tdG);
+      tfoot.appendChild(tr);
+    }
+
+    /* ---------- Lógica de totales ---------- */
+    function actualizarTotal(fila){
+      let suma=0;
+      for(let c=0;c<N_PAR;c++){
+        const v = parseInt(document.getElementById(cellId(fila,c)).value,10) || 0;
+        suma += v;
+      }
+      document.getElementById(totalId(fila)).textContent = String(suma);
       actualizarTotalesPorPartida();
     }
 
-    // Función para actualizar los totales de cada partida (por columnas)
-    function actualizarTotalesPorPartida() {
-      for (let col = 0; col < 9; col++) {
-        let totalPartida = 0;
-        for (let fila = 0; fila < 12; fila++) {
-          totalPartida += parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
+    function actualizarTotalesPorPartida(){
+      for(let c=0;c<N_PAR;c++){
+        let totalCol=0;
+        for(let r=0;r<N_JUG;r++){
+          totalCol += parseInt(document.getElementById(cellId(r,c)).value,10) || 0;
         }
-        document.getElementById(`total-partida-${col}`).innerText = totalPartida;
+        document.getElementById(totalPartidaId(c)).textContent = String(totalCol);
       }
-
-      // Actualizar total general
-      let totalGeneral = 0;
-      for (let fila = 0; fila < 12; fila++) {
-        totalGeneral += parseInt(document.getElementById(`total-${fila}`).innerText) || 0;
+      let totalGeneral=0;
+      for(let r=0;r<N_JUG;r++){
+        totalGeneral += parseInt(document.getElementById(totalId(r)).textContent,10) || 0;
       }
-      document.getElementById("total-general").innerText = totalGeneral;
+      document.getElementById('total-general').textContent = String(totalGeneral);
+      paintGeneralState(totalGeneral);
     }
 
-    // Función para exportar los datos a CSV
-    function exportarCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,Jugador,Partida 1,Partida 2,Partida 3,Partida 4,Partida 5,Partida 6,Partida 7,Partida 8,Partida 9,Total Jugador\n";
+    function paintGeneralState(totalGeneral){
+      const badge = document.getElementById('total-general');
+      if(totalGeneral===0){
+        badge.style.borderColor = '#22c55e99';
+        badge.style.background = '#22c55e1a';
+        badge.style.color = '#d4ffe5';
+      }else{
+        badge.style.borderColor = '#ef444499';
+        badge.style.background = '#ef44441a';
+        badge.style.color = '#ffd6d6';
+      }
+    }
 
-      for (let fila = 0; fila < 12; fila++) {
-        let row = [document.getElementById(`name-${fila}`).value || `Jugador ${fila + 1}`];
-        let total = 0;
-        for (let col = 0; col < 9; col++) {
-          const val = parseInt(document.getElementById(`cell-${fila}-${col}`).value) || 0;
-          row.push(val);
-          total += val;
+    /* ---------- Persistencia ---------- */
+    const LS_KEY='bridge_scores_v1';
+    function saveState(){
+      const data={ names:[], cells:[] };
+      for(let r=0;r<N_JUG;r++){
+        data.names[r] = document.getElementById(nameId(r)).value || '';
+        data.cells[r] = [];
+        for(let c=0;c<N_PAR;c++){
+          data.cells[r][c] = parseInt(document.getElementById(cellId(r,c)).value,10) || 0;
+        }
+      }
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    }
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        for(let r=0;r<N_JUG;r++){
+          document.getElementById(nameId(r)).value = data?.names?.[r] ?? '';
+          for(let c=0;c<N_PAR;c++){
+            document.getElementById(cellId(r,c)).value = data?.cells?.[r]?.[c] ?? 0;
+          }
+          actualizarTotal(r);
+        }
+        actualizarTotalesPorPartida();
+      }catch(e){ console.warn('No se pudo cargar estado', e); }
+    }
+    function saveAndPaint(){
+      saveState();
+      statusHint.textContent='Guardado';
+      clearTimeout(saveAndPaint._t);
+      saveAndPaint._t=setTimeout(()=>statusHint.textContent=' ',1200);
+    }
+
+    /* ---------- Exportar CSV ---------- */
+    function exportarCSV(){
+      let lines = [];
+      lines.push(['Jugador', ...Array.from({length:N_PAR},(_,i)=>`Partida ${i+1}`), 'Total Jugador'].join(','));
+      for(let r=0;r<N_JUG;r++){
+        const name = (document.getElementById(nameId(r)).value || `Jugador ${r+1}`).replace(/,/g,' ');
+        let total=0, row=[name];
+        for(let c=0;c<N_PAR;c++){
+          const v = parseInt(document.getElementById(cellId(r,c)).value,10) || 0;
+          total+=v; row.push(v);
         }
         row.push(total);
-        csvContent += row.join(",") + "\n";
+        lines.push(row.join(','));
       }
-
-      // Agregar fila de totales por partida
-      let rowPartidas = ["Total por Partida"];
-      for (let col = 0; col < 9; col++) {
-        rowPartidas.push(document.getElementById(`total-partida-${col}`).innerText || 0);
+      const totRow = ['Total por Partida'];
+      for(let c=0;c<N_PAR;c++){
+        totRow.push(document.getElementById(totalPartidaId(c)).textContent || '0');
       }
-      rowPartidas.push("");
-      csvContent += rowPartidas.join(",") + "\n";
+      totRow.push('');
+      lines.push(totRow.join(','));
 
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "scores_bridge.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const csv = '\uFEFF' + lines.join('\n'); // BOM para Excel
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'scores_bridge.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
     }
 
-    // Función para resetear el formulario
-    function resetearFormulario() {
-      // Restablecer nombres de jugadores
-      for (let fila = 0; fila < 12; fila++) {
-        document.getElementById(`name-${fila}`).value = '';
-      }
-
-      // Restablecer puntajes
-      for (let fila = 0; fila < 12; fila++) {
-        for (let col = 0; col < 9; col++) {
-          document.getElementById(`cell-${fila}-${col}`).value = 0;
+    /* ---------- Reset & Nuevo ---------- */
+    function resetear(){
+      for(let r=0;r<N_JUG;r++){
+        document.getElementById(nameId(r)).value='';
+        for(let c=0;c<N_PAR;c++){
+          document.getElementById(cellId(r,c)).value=0;
         }
+        document.getElementById(totalId(r)).textContent='0';
       }
-
-      // Restablecer totales
-      for (let fila = 0; fila < 12; fila++) {
-        document.getElementById(`total-${fila}`).innerText = 0;
+      for(let c=0;c<N_PAR;c++){
+        document.getElementById(totalPartidaId(c)).textContent='0';
       }
-
-      // Restablecer totales por partida
-      for (let col = 0; col < 9; col++) {
-        document.getElementById(`total-partida-${col}`).innerText = 0;
-      }
-
-      // Restablecer total general
-      document.getElementById("total-general").innerText = 0;
+      document.getElementById('total-general').textContent='0';
+      paintGeneralState(0);
+      saveAndPaint();
     }
 
-    // Función para finalizar datos de entrada
-    function finalizarDatos() {
-      const totalGeneral = parseInt(document.getElementById("total-general").innerText) || 0;
-
-      if (totalGeneral !== 0) {
-        alert("Revisar Scores: El Total General no es 0.");
-      } else {
-        alert("Datos de entrada finalizados correctamente.");
+    function finalizar(){
+      const tg = parseInt(document.getElementById('total-general').textContent,10) || 0;
+      if(tg!==0){
+        alert('Revisar Scores: el Total General no es 0.');
+      }else{
+        alert('¡Perfecto! Datos finalizados y balanceados.');
       }
     }
+
+    /* ---------- Manifest minimal (para añadir a inicio) ---------- */
+    function setupManifest(){
+      // Icono PNG generado en runtime (simple círculo azul)
+      const canvas = document.createElement('canvas');
+      canvas.width=256; canvas.height=256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle='#0b1220'; ctx.fillRect(0,0,256,256);
+      ctx.beginPath(); ctx.arc(128,128,96,0,Math.PI*2);
+      ctx.fillStyle='#0ea5e9'; ctx.fill();
+      ctx.fillStyle='#ffffff'; ctx.font='bold 88px Arial';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('B',128,138);
+      const iconData = canvas.toDataURL('image/png');
+
+      const manifest = {
+        name: "Scores de Bridge",
+        short_name: "Bridge",
+        start_url: ".",
+        display: "standalone",
+        background_color: "#0b1220",
+        theme_color: "#0ea5e9",
+        icons: [
+          { src: iconData, sizes: "256x256", type: "image/png" }
+        ]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('link');
+      link.rel='manifest'; link.href=url;
+      document.head.appendChild(link);
+      // Limpieza del blob cuando se cierre
+      window.addEventListener('pagehide', ()=>URL.revokeObjectURL(url));
+    }
+
+    /* ---------- Init ---------- */
+    function init(){
+      renderHead(); renderBody(); renderFoot();
+      for(let r=0;r<N_JUG;r++){ actualizarTotal(r); }
+      actualizarTotalesPorPartida();
+      loadState();
+      // Botones
+      document.getElementById('btnCSV').addEventListener('click', exportarCSV);
+      document.getElementById('btnReset').addEventListener('click', resetear);
+      document.getElementById('btnFinalizar').addEventListener('click', finalizar);
+      document.getElementById('btnNuevo').addEventListener('click', ()=>{
+        if(confirm('¿Iniciar un juego nuevo? Se vaciarán los datos.')){ resetear(); }
+      });
+      setupManifest();
+    }
+    document.addEventListener('DOMContentLoaded', init);
+  })();
   </script>
-
 </body>
 </html>
