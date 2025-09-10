@@ -70,7 +70,6 @@
       position:relative;
       overflow:auto;
       max-height: calc(100dvh - 220px);
-      /* momentum scroll iOS */
       -webkit-overflow-scrolling: touch;
     }
     table{
@@ -247,7 +246,8 @@
         for(let c=0;c<N_PAR;c++){
           const td = document.createElement('td');
           const inp = document.createElement('input');
-          inp.type='number'; inp.inputMode='numeric'; inp.min=-99; inp.max=99; inp.value=0;
+          inp.type='number'; inp.inputMode='numeric'; inp.min=-99; inp.max=99;
+          inp.value=''; // ← inicia vacío (sin 0)
           inp.className='num-input'; inp.id=cellId(r,c);
           inp.addEventListener('input', ()=>{ actualizarTotal(r); saveAndPaint(); });
           td.appendChild(inp);
@@ -341,7 +341,7 @@
         for(let r=0;r<N_JUG;r++){
           document.getElementById(nameId(r)).value = data?.names?.[r] ?? '';
           for(let c=0;c<N_PAR;c++){
-            document.getElementById(cellId(r,c)).value = data?.cells?.[r]?.[c] ?? 0;
+            document.getElementById(cellId(r,c)).value = (data?.cells?.[r]?.[c] ?? '') || '';
           }
           actualizarTotal(r);
         }
@@ -390,7 +390,7 @@
       for(let r=0;r<N_JUG;r++){
         document.getElementById(nameId(r)).value='';
         for(let c=0;c<N_PAR;c++){
-          document.getElementById(cellId(r,c)).value=0;
+          document.getElementById(cellId(r,c)).value='';
         }
         document.getElementById(totalId(r)).textContent='0';
       }
